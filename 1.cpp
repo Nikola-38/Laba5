@@ -18,6 +18,10 @@ private:
     map<string, CellInfo> cells; // Карта ячеек склада
     int totalCapacity; // Общая вместимость склада
     int totalFilled; // Общее количество заполненных ячеек
+    const int ZONE_COUNT = 3; // Количество зон
+    const int SHELF_COUNT = 20; // Количество стеллажей
+    const int SECTION_COUNT = 5; // Количество вертикальных секций в стеллаже
+    const int SHELF_LEVEL_COUNT = 2; // Количество полок в вертикальной секции
 
 public:
     Warehouse(int totalCapacity) : totalCapacity(totalCapacity), totalFilled(0) {}
@@ -68,18 +72,24 @@ public:
 
     // Получение информации о состоянии склада
     void printInfo() {
-        double totalFillRatio = static_cast<double>(totalFilled) / totalCapacity * 100;
+        double totalFillRatio = static_cast<double>(totalFilled) / (totalCapacity / 10) * 100;
         cout << "Общая загруженность склада: " << fixed << setprecision(2) << totalFillRatio << "%" << endl;
 
-        map<char, int> zoneStats;
+        vector<int> zoneCount(ZONE_COUNT, 0);
         for (const auto& [address, item] : cells) {
-            zoneStats[address[0]]++;
+            int zoneIndex = address[0] - 'A';
+            if (zoneIndex >= 0 && zoneIndex < ZONE_COUNT) {
+                zoneCount[zoneIndex]++;
+            }
         }
 
-        for (const auto& [zone, count] : zoneStats) {
-            double zoneRatio = static_cast<double>(count) / (totalFilled / 3) * 100;
-            cout << "Зона " << zone << ": " << fixed << setprecision(2) << zoneRatio << "%" << endl;
-        }
+        double zoneARatio = static_cast<double>(zoneCount[0]) / totalFilled * 100;
+        double zoneBRatio = static_cast<double>(zoneCount[1]) / totalFilled * 100;
+        double zoneCRatio = static_cast<double>(zoneCount[2]) / totalFilled * 100;
+
+        cout << "Зона A: " << fixed << setprecision(2) << zoneARatio << "%" << endl;
+        cout << "Зона Б: " << fixed << setprecision(2) << zoneBRatio << "%" << endl;
+        cout << "Зона В: " << fixed << setprecision(2) << zoneCRatio << "%" << endl;
 
         cout << "Заполненные ячейки:" << endl;
         for (const auto& [address, item] : cells) {
@@ -87,11 +97,15 @@ public:
         }
 
         cout << "Пустые ячейки:" << endl;
-        for (int i = 1; i <= 20; i++) {
-            for (char zone = 'A'; zone <= 'C'; zone++) {
-                string address = string(1, zone) + to_string(i);
-                if (cells.count(address) == 0) {
-                    cout << address << " ";
+        for (int zone = 0; zone < ZONE_COUNT; zone++) {
+            for (int shelf = 1; shelf <= SHELF_COUNT; shelf++) {
+                for (int section = 1; section <= SECTION_COUNT; section++) {
+                    for (int shelfLevel = 1; shelfLevel <= SHELF_LEVEL_COUNT; shelfLevel++) {
+                        string address = string(1, static_cast<char>('A' + zone)) + to_string(shelf) + to_string(section) + to_string(shelfLevel);
+                        if (cells.count(address) == 0) {
+                            cout << address << " ";
+                        }
+                    }
                 }
             }
         }
